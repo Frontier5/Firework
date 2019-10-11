@@ -8,6 +8,7 @@ var mongoose = require('mongoose');
 
 var AttendanceSheetModel = require('./models/AttendanceSheet');
 var indexRouter = require('./routes/index');
+var attendanceRouter = require('./routes/attendance');
 
 var app = express();
 
