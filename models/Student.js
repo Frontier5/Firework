@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const Schema = mongoose.Schema;
-const ObjectId = mongoose.Schema.Types.ObjectId;
 
 const SALT_WORK_FACTOR = 5;
 
@@ -32,7 +31,7 @@ Student.pre('save', function (next) {
 	if (!student.isModified('password')) return next();
 
 	// Hash the password again
-	bcrypt.hash(student.password, 10, function (err, hash) {
+	bcrypt.hash(student.password, SALT_WORK_FACTOR, function (err, hash) {
 		console.log(hash);
 		if (err) return next(err);
 

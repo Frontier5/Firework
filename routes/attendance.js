@@ -1,23 +1,16 @@
 const express = require('express');
 const jwt = require('express-jwt');
+const config = require('../config')
 const authenticate = require('../utils/authenticate');
 const Course = require('../models/Course');
 const Student = require('../models/Student');
 const router = express.Router();
 
-// If no token, throw back, if token -> check role for student, if not student, throw back
-
-router.use((req, res, next) => {
-	if (req.user) {
-		console.log("JWT token detected");
-		next();
-	} else {
-
-	}
-});
+// req.user now contains decoded payload, if a token is detected
+router.use(jwt({ secret: config.secret }));
 
 // Get all attendance details of a single student
-router.post('/student', authenticate.checkAdmin, jwt({ secret: "bigblackbentlys" }), (req, res) => {
+router.post('/student', authenticate.checkStudent, jwt({ secret: config.secret }), (req, res) => {
 	const roll_number = req.body.roll_number;
 
 	Student.findById(roll_number, (err, student) => {
@@ -26,6 +19,7 @@ router.post('/student', authenticate.checkAdmin, jwt({ secret: "bigblackbentlys"
 			Course.find({ 'course_id': { $in: student.enrolled_courses } }, (error, resp) => {
 				if (error) res.send(error);
 				else {
+					// Response is the list of Courses the student is enrolled in
 					res.json(resp);
 				}
 			});
@@ -34,13 +28,13 @@ router.post('/student', authenticate.checkAdmin, jwt({ secret: "bigblackbentlys"
 });
 
 // Add a sheet of attendance (faculty updates a day of attendance)
-router.post('/add', (req, res) => {
+router.post('/add', authenticate.checkFaculty, (req, res) => {
 	const course_id = req.body.course_id;
 	const date = req.body.date;
 	const class_duration = req.body.class_duration;
 	const class_type = req.body.class_type;
 	// TODO: Validation required -> should be an array of objects ( [{ roll_number: present_or_not }] )
-	const updatedAttendances = req.body.updatedList;
+	const updated_attendances = req.body.updated_list;
 
 	Course.findById(course_id, (err, resp) => {
 		if (err) res.send(err);
@@ -49,14 +43,12 @@ router.post('/add', (req, res) => {
 				date: date,
 				class_duration: class_duration,
 				class_type: class_type,
-				students: updatedAttendances
+				students: updated_attendances
 			}
 			resp.attendance_sheet.push(class_attendance);
 			resp.save((err) => {
-				if (err) res.send(err)
-				else {
-					res.send("Update successful")
-				}
+				if (err) res.send(err);
+				else res.send("Update successful");
 			});
 		}
 	});

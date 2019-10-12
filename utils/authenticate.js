@@ -36,10 +36,6 @@ function getStudentToken(roll_number) {
 	);
 }
 
-function verifyStudentToken(token) {
-	return jwt.verify(token, config.secret);
-}
-
 module.exports = {
 	checkAdmin,
 	checkStudent,

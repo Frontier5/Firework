@@ -1,5 +1,8 @@
 const express = require('express');
-const authenticate = require('../../utils/authenticate').default;
+const jwt = require('express-jwt');
+const config = require('../../config');
+const transporter = require('../../utils/mailer');
+const authenticate = require('../../utils/authenticate');
 const Student = require('../../models/Student');
 const router = express.Router();
 
@@ -18,11 +21,11 @@ router.post('/login', (req, res, next) => {
 			else {
 				res.send("not match");
 			};
-		}); s
+		});
 	});
 });
 
-router.post('/add-test-student', (req, res, next) => {
+router.post('/add-test-student', (req, res) => {
 	Student.create({
 		_id: "170330021",
 		password: "abhishekTheBombAss",
@@ -30,24 +33,34 @@ router.post('/add-test-student', (req, res, next) => {
 		first_name: "Abhishek",
 		last_name: "Kasireddy",
 		college_email: "a.kasireddy@klh.edu.in",
-		guardian_number: "170330021"
+		guardian_number: "9676333766"
 	}).then((doc) => {
 		res.send(doc);
 	}).catch((reason) => {
 		res.send(reason);
-	})
+	});
 });
 
-router.post('/student/change', (req, res, next) => {
+router.post('/change', jwt({secret: config.secret}), authenticate.checkStudent, (req, res, next) => {
 	// Since change password only occurs after student has already
 	// logged in, we can just look at the token to get their roll_number
 	// and keep them signed in
 
 	// body contains current password, and new password
-
+	Student.findById(req.user.roll_number, (err, student) => {
+		if (err) res.status(403).send("Invalid token");
+		else {
+			const new_pass = req.body.new_pass;
+			student.password = new_pass;
+			student.save((err, student) => {
+				if (err) res.status(500).send(err);
+				else res.send("saved -> " + student);
+			});
+		}
+	});
 });
 
-router.post('/forgot', (req, res, next) => {
+router.post('/forgot', (req, res) => {
 	if (req.body.roll_number) {
 		res.setHeader('Content-Type', 'application/json');
 		Student.findOne({ roll_number: req.body.roll_number })
@@ -68,7 +81,7 @@ router.post('/forgot', (req, res, next) => {
 	} else res.status(400).json({ success: false, status: 'No email is entered' });
 });
 
-router.post('/reset/:token', (req, res, next) => {
+router.post('/reset/:token', (req, res) => {
 	res.setHeader('Content-Type', 'application/json');
 	User.findOne({ reset_token: req.params.token })
 		.then((user) => {
