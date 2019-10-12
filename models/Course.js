@@ -1,20 +1,20 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var ObjectId = mongoose.Schema.Types.ObjectId;
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const ObjectId = mongoose.Schema.Types.ObjectId;
 
-var RollAttendance = new Schema({
+const RollAttendance = new Schema({
 	roll_number: {type: Number, required: true},
 	present: {type: Boolean, required: true}
 });
 
-var AttendanceSchema = new Schema({
+const AttendanceSchema = new Schema({
 	date: { type: Date, required: true },
 	class_duration: { type: Number, required: true},
 	class_type: { type: String, required: true },
 	students: { type: [RollAttendance] }
 });
 
-var CourseSchema = new Schema({
+const CourseSchema = new Schema({
 	course_id: { type: ObjectId, required: true },
 	credits: { type: Number, required: true },
 	course_instructor: { type: String, required: true },
