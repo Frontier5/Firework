@@ -13,14 +13,8 @@ router.post('/login', (req, res, next) => {
 
 	Student.findById(roll, (err, student) => {
 		student.comparePassword(password, (err, isMatch) => {
-			if (isMatch) {
-				// If password matches, generate token and send;
-				console.log(authenticate.getStudentToken(roll));
-				res.send(authenticate.getStudentToken(roll));
-			}
-			else {
-				res.send("not match");
-			};
+			if (isMatch) res.send(authenticate.getStudentToken(roll));
+			else res.send("Not match");
 		});
 	});
 });
@@ -41,7 +35,7 @@ router.post('/add-test-student', (req, res) => {
 	});
 });
 
-router.post('/change', jwt({secret: config.secret}), authenticate.checkStudent, (req, res, next) => {
+router.post('/change', jwt({ secret: config.secret }), authenticate.checkStudent, (req, res, next) => {
 	// Since change password only occurs after student has already
 	// logged in, we can just look at the token to get their roll_number
 	// and keep them signed in
@@ -62,47 +56,48 @@ router.post('/change', jwt({secret: config.secret}), authenticate.checkStudent, 
 
 router.post('/forgot', (req, res) => {
 	if (req.body.roll_number) {
+		console.log(req.body.roll_number);
 		res.setHeader('Content-Type', 'application/json');
-		Student.findOne({ roll_number: req.body.roll_number })
-			.then((User) => {
+		Student.findById(req.body.roll_number, (err, student) => {
+			if (err) res.status(500).json({ status: "Couldn't find that roll_number", err: err });
+			else {
+				const token = authenticate.getStudentResetToken(student._id);
+				console.log(token);
 				const mailOptions = {
 					from: config.mailer.username, // sender's address
-					to: User.email, // receiver's address
+					to: student.college_email, // receiver's address
 					subject: 'Password Reset', // Subject line
-					html: '<h1>If you received this email, you previously registered and requested to reset your password</h1>'// plain text body
+					html: `<a href='http://localhost:3000/auth/student/reset/${token}'>Click here to reset your password</a>`
 				};
-				transporter.sendMail(mailOptions, function (err) {
+				transporter.sendMail(mailOptions, (err) => {
 					if (err) res.status(500).json({ err: err });
 					else res.status(200).json({ success: true, status: 'Email sent successfully!' });
 				});
-			}).catch((err) => {
-				res.status(500).json({ success: false, status: 'No account is registered with that email' });
-			});
+			}
+		});
 	} else res.status(400).json({ success: false, status: 'No email is entered' });
 });
 
-router.post('/reset/:token', (req, res) => {
-	res.setHeader('Content-Type', 'application/json');
-	User.findOne({ reset_token: req.params.token })
-		.then((user) => {
-			if (req.body.password1 === req.body.password2) {
-				User.update({ 'username': user.username }, { $set: { 'password': req.body.password1 } })
-					.then((user) => {
-						res.status(202).json({ success: true, status: 'Password successfully updated!' });
-					})
-					.catch((err) => {
-						res.status(500).json({ success: true, status: 'Password not updated' });
-					})
-			}
-			else {
-				res.status(400).json({ success: false, status: 'The passwords do not match' });
-			}
-			user.save(function (err, user) {
-				if (err) return new (err);
-				else console.log(user.username + "'s password is reset");
+router.get('/reset/:token', (req, res) => {
+	res.render('reset', { token: req.params.token });
+});
+
+router.post('/reset', (req, res) => {
+	// TODO: Body contains token so verify again and save model with new password
+	// Right now we're only decoding without verifying signature
+	const decoded = authenticate.decodeToken(req.body.token);
+	const roll_number = decoded.roll_number;
+	const password = req.body.password;
+	Student.findById(roll_number, (err, student) => {
+		if (err) res.status(500).send(err);
+		else {
+			student.password = password;
+			student.save((error) => {
+				if (error) res.status(500).send(error);
+				else res.send("changed password");
 			});
-		})
-		.catch((err) => res.status(403).json({ success: false, status: 'Invalid route', error: err }) );
+		}
+	});
 });
 
 module.exports = router;

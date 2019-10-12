@@ -36,9 +36,27 @@ function getStudentToken(roll_number) {
 	);
 }
 
+function decodeToken(token) {
+	return jwt.decode(token);
+}
+
+function getStudentResetToken(roll_number) {
+	return jwt.sign(
+		{
+			roll_number: roll_number,
+		},
+		config.reset_secret_key,
+		{
+			expiresIn: '1h'
+		}
+	)
+}
+
 module.exports = {
 	checkAdmin,
 	checkStudent,
 	checkFaculty,
-	getStudentToken
+	getStudentToken,
+	getStudentResetToken,
+	decodeToken
 }

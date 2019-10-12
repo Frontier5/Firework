@@ -1,0 +1,23 @@
+doctype html
+html  
+	head
+		title Password Reset
+		link(rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png")
+		// Bootstrap CSS
+		link(href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css", rel="stylesheet", integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T", crossorigin="anonymous")
+		block head-pack
+
+	body
+
+		form(action='/auth/student/reset' method='POST')
+			input(name='token' value=token style="display: none")
+			.form-group
+				label(for='password') New Password
+				input.form-control(name='password' placeholder='New password')
+			.form-group
+				label(for='verifyPassword') Verify Password
+				input.form-control(name='verifyPassword' placeholder='Re-enter password')
+			button.btn.btn-primary(type='submit') Submit
+		script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js", integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM", crossorigin="anonymous")
+
+		//- TODO: Form validation required. Make sure both inputs are equal before submitting form.
