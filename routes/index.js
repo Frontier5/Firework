@@ -5,7 +5,7 @@ var router = express.Router();
 
 // If no token, throw back, if token -> check role for student, if not student, throw back
 
-router.post('/student', function (req, res, next) {
+router.get('/', function (req, res, next) {
 	
 });
 
