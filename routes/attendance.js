@@ -10,7 +10,7 @@ const router = express.Router();
 router.use(jwt({ secret: config.secret }));
 
 // Get all attendance details of a single student
-router.post('/student', jwt({ secret: config.secret }), authenticate.checkStudent, (req, res) => {
+router.post('/student', authenticate.checkStudent, (req, res) => {
 	const roll_number = req.user.roll_number;
 	console.time("lap");
 	Student.findById(roll_number, (err, student) => {
@@ -23,9 +23,9 @@ router.post('/student', jwt({ secret: config.secret }), authenticate.checkStuden
 					var payload = {};
 					// TODO: Generate payload for student attendance
 					resp.forEach((course) => {;
-						payload[course._id] = course._id;
+						payload[course._id] = {};
 						course.attendance.attendance_by_student.forEach((sheet) => {
-							if (sheet.roll_number == roll_number) payload.attendance = sheet;
+							if (sheet.roll_number == roll_number) payload[course._id] = sheet;
 						});
 					});
 					console.timeEnd("lap");
@@ -63,7 +63,6 @@ router.post('/add', authenticate.checkFaculty, (req, res) => {
 	});
 });
 
-
 router.post('/batch', (req, res) => {
 	// Get batch attendance details
 	// Get students in the specified batch
@@ -72,8 +71,5 @@ router.post('/batch', (req, res) => {
 	// Put each course attendance sheet in a separate sheet in excel
 });
 
-router.post('/', (req, res) => {
-	res.send("Hi, this is the API endpoint for Firework Attendance");
-});
 
 module.exports = router;
