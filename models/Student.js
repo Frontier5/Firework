@@ -18,7 +18,8 @@ const Student = new Schema({
 	guardian_last_name: { type: Number },
 	guardian_number: { type: String, required: true },
 	guardian_email: { type: String },
-	enrolled_courses: { type: [String] }
+	finished_courses: { type: [String] },
+	ongoing_courses: { type: [String] }
 });
 
 // ** FOR WHATEVER MOTHERFUCKING REASON, LAMBDA DECLARATIONS DON'T WORK			**

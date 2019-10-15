@@ -16,6 +16,20 @@ const AttendanceSchema = new Schema({
 	students: { type: [RollAttendance] }
 });
 
+const StudentAttendanceSchema = new Schema({
+	roll_number: { type: String, required: true },
+	labs_attended: { type: Number, default: 0 },
+	lectures_attended: { type: Number, default: 0 },
+	skilling_sessions_attended: { type: Number, default: 0 }
+});
+
+const AttendanceStructureSchema = new Schema({
+	labs_conducted: { type: Number, required: true, default: 0 },
+	lectures_conducted: { type: Number, required: true, default: 0 },
+	skilling_sessions_conducted: { type: Number, required: true, default: 0 },
+	attendance_sheet: { type: [AttendanceSchema] },
+	attendance_by_student: { type: [StudentAttendanceSchema] }
+});
 
 const AssignmentSchema = new Schema({
 	assignment_number: { type: Number, required: true },
@@ -24,7 +38,7 @@ const AssignmentSchema = new Schema({
 });
 
 const ExamSchema = new Schema({
-	mid: { type: Number, required: true, min: 1, max: 2},
+	mid: { type: Number, required: true, min: 1, max: 2 },
 	component: { type: String, required: true },
 	max_marks: { type: Number, required: true },
 	scored_marks: { type: Number, required: true }
@@ -51,7 +65,7 @@ const CourseSchema = new Schema({
 	credits: { type: Number, required: true },
 	course_instructor: { type: String, required: true },
 	enrolled_students: { type: [StudentSchema] },
-	attendance_sheet: { type: [AttendanceSchema] }
+	attendance: { type: AttendanceStructureSchema }
 });
 
 //	STRUCTURE DECOMPOSITION
@@ -70,5 +84,12 @@ const CourseSchema = new Schema({
 
 // 	Attendance will also be needed on a per student basis, but the faculty needs
 //	to batch update the attendance so this approach is easer.
+
+// PRESAVE METHODS
+
+// Whenever attendance_sheet gets updated, make sure all enrolled students get updated
+// CourseSchema.pre('save', (course) => {
+// 	if (course.)
+// });
 
 module.exports = mongoose.model("Course", CourseSchema, "courses");

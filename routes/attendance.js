@@ -10,17 +10,26 @@ const router = express.Router();
 router.use(jwt({ secret: config.secret }));
 
 // Get all attendance details of a single student
-router.post('/student', authenticate.checkStudent, jwt({ secret: config.secret }), (req, res) => {
-	const roll_number = req.body.roll_number;
-
+router.post('/student', jwt({ secret: config.secret }), authenticate.checkStudent, (req, res) => {
+	const roll_number = req.user.roll_number;
+	console.time("lap");
 	Student.findById(roll_number, (err, student) => {
-		if (err) res.send(err);
+		if (err) res.status(500).send(err);
 		else {
-			Course.find({ 'course_id': { $in: student.enrolled_courses } }, (error, resp) => {
-				if (error) res.send(error);
+			Course.find({ '_id': { $in: student.ongoing_courses } }, (error, resp) => {
+				if (error) res.status(500).send(error);
 				else {
 					// Response is the list of Courses the student is enrolled in
-					res.json(resp);
+					var payload = {};
+					// TODO: Generate payload for student attendance
+					resp.forEach((course) => {;
+						payload[course._id] = course._id;
+						course.attendance.attendance_by_student.forEach((sheet) => {
+							if (sheet.roll_number == roll_number) payload.attendance = sheet;
+						});
+					});
+					console.timeEnd("lap");
+					res.status(200).json(payload);
 				}
 			});
 		}
